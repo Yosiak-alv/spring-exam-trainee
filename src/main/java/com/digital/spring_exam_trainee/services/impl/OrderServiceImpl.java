@@ -15,6 +15,7 @@ import com.digital.spring_exam_trainee.services.OrderService;
 import com.digital.spring_exam_trainee.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -83,6 +84,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void deleteById(Long id) {
         OrderDto orderDto = this.findById(id);
-        this.repository.deleteById(orderDto.getId());
+        if(orderDto != null){
+            this.repository.deleteById(orderDto.getId());
+        }
     }
 }

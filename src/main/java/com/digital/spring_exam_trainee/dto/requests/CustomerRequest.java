@@ -6,15 +6,16 @@ import lombok.Data;
 @Data
 public class CustomerRequest {
     @NotNull
-    @NotBlank
+    @NotEmpty
     @Size(min = 3, max = 50)
     private String name;
 
+    @NotEmpty
     @Email
     private String email;
 
     @NotNull
-    @NotBlank
+    @NotEmpty
     @Size(min = 8, max = 100)
     private String address;
 

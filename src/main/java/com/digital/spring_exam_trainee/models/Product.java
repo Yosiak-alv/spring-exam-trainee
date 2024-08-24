@@ -13,6 +13,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@ToString(exclude = "orders")
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

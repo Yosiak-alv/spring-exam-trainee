@@ -14,6 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
+@ToString(exclude = "orders")
 public class Delivery {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

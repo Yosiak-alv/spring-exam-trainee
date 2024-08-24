@@ -1,21 +1,22 @@
 package com.digital.spring_exam_trainee.dto.requests;
 
 import com.digital.spring_exam_trainee.common.validations.NotEmptyArray;
-import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
 @Data
 public class OrderRequest {
 
     @NotNull
-    @Digits(integer = 10, fraction = 0)
+    @Positive
     private Long deliveryId;
 
     @NotNull
-    @Digits(integer = 10, fraction = 0)
+    @Positive
     private Long customerId;
 
+    @NotNull
     @NotEmptyArray
     private Long[] productIds;
 }

@@ -10,15 +10,15 @@ import com.digital.spring_exam_trainee.repositories.CustomerRepository;
 import com.digital.spring_exam_trainee.services.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
-    //TODO when updating a customer if this is in a order, delete the association with the order, so the order will not have this customer anymore
-    //TODO fix this
     @Autowired
     private CustomerRepository repository;
+
     @Override
     public List<CustomerDto> findAll() {
         return this.repository.findAll().stream().map(CustomerDto::new).toList();
@@ -26,9 +26,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto findById(Long id) {
-        Customer customer = this.repository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + id));
+        Customer customer = this.findModelById(id);
         return new CustomerDto(customer);
     }
 
@@ -43,17 +41,27 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto update(Long id, CustomerRequest customerRequest) {
-        CustomerDto customerDto = this.findById(id);
-        Customer customer = customerDto.toEntity();
-        customer.setName(customerRequest.getName());
-        customer.setEmail(customerRequest.getEmail());
-        customer.setAddress(customerRequest.getAddress());
-        return new CustomerDto(this.repository.save(customer));
+        Customer customer = this.findModelById(id);
+        if (customer != null) {
+            customer.setName(customerRequest.getName());
+            customer.setEmail(customerRequest.getEmail());
+            customer.setAddress(customerRequest.getAddress());
+            return new CustomerDto(this.repository.save(customer));
+        }
+        return null;
     }
 
     @Override
     public void deleteById(Long id) {
-        CustomerDto customerDto = this.findById(id);
-        this.repository.deleteById(customerDto.getId());
+        Customer customer = this.findModelById(id);
+        if(customer != null){
+            this.repository.deleteById(customer.getId());
+        }
+    }
+
+    private Customer findModelById(Long id) {
+        return this.repository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + id));
     }
 }

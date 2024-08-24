@@ -6,6 +6,7 @@ import com.digital.spring_exam_trainee.dto.requests.CategoryRequest;
 import com.digital.spring_exam_trainee.exceptions.ResourceNotFoundException;
 import com.digital.spring_exam_trainee.models.Category;
 import com.digital.spring_exam_trainee.repositories.CategoryRepository;
+import com.digital.spring_exam_trainee.repositories.ProductRepository;
 import com.digital.spring_exam_trainee.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,9 +25,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto findById(Long id) {
-        Category category = this.repository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+        Category category = this.findModelById(id);
         return new CategoryDto(category);
     }
 
@@ -40,16 +39,24 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto update(Long id, CategoryRequest categoryRequest) {
-        CategoryDto categoryDto = this.findById(id);
-        Category category = categoryDto.toEntity();
-        category.setName(categoryRequest.getName());
-        category.setType(categoryRequest.getType());
-        return new CategoryDto(this.repository.save(category));
+        Category category = this.findModelById(id);
+        if (category != null) {
+            category.setName(categoryRequest.getName());
+            category.setType(categoryRequest.getType());
+            return new CategoryDto(this.repository.save(category));
+        }
+        return null;
     }
 
     @Override
     public void deleteById(Long id) {
-        CategoryDto categoryDto = this.findById(id);
-        this.repository.deleteById(categoryDto.getId());
+        Category category = this.findModelById(id);
+        if(category != null){this.repository.deleteById(category.getId());}
+    }
+
+    private Category findModelById(Long id) {
+        return this.repository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
     }
 }

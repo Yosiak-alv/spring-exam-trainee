@@ -2,27 +2,30 @@ package com.digital.spring_exam_trainee.services.impl;
 
 
 import com.digital.spring_exam_trainee.dto.CategoryDto;
-import com.digital.spring_exam_trainee.dto.CustomerDto;
 import com.digital.spring_exam_trainee.dto.ProductDto;
 import com.digital.spring_exam_trainee.dto.requests.ProductRequest;
 import com.digital.spring_exam_trainee.exceptions.ResourceNotFoundException;
-import com.digital.spring_exam_trainee.models.Customer;
+import com.digital.spring_exam_trainee.models.Order;
 import com.digital.spring_exam_trainee.models.Product;
+import com.digital.spring_exam_trainee.repositories.OrderRepository;
 import com.digital.spring_exam_trainee.repositories.ProductRepository;
 import com.digital.spring_exam_trainee.services.CategoryService;
+import com.digital.spring_exam_trainee.services.OrderService;
 import com.digital.spring_exam_trainee.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class ProductServiceImpl implements ProductService {
-    //TODO when updating a product if this is in a order, delete the association with the order, so the order will not have this product anymore
-    //TODO fix this
     @Autowired
     private ProductRepository repository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Autowired
     private CategoryService categoryService;
@@ -34,9 +37,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto findById(Long id) {
-        Product product = this.repository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+        Product product = this.findModelById(id);
         return new ProductDto(product);
     }
 
@@ -55,10 +56,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto update(Long id, ProductRequest productRequest) {
-        ProductDto productDto = this.findById(id);
+        Product product = this.findModelById(id);
         CategoryDto validate = categoryService.findById(productRequest.getCategoryId());
-        if(validate != null){
-            Product product = productDto.toEntity();
+        if(validate != null && product != null){
             product.setName(productRequest.getName());
             product.setCategory(validate.toEntity());
             return new ProductDto(this.repository.save(product));
@@ -68,18 +68,29 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteById(Long id) {
-        ProductDto productDto = this.findById(id);
-        this.repository.deleteById(productDto.getId());
+        Product product = this.findModelById(id);
+        if(product != null){
+            List<Order> orders = orderRepository.findAll();
+            for (Order order : orders) {
+                order.getProducts().remove(product);
+            }
+            this.repository.deleteById(product.getId());
+        }
     }
 
+    @Override
     public List<Product> findByIds(Long[] ids) {
         List<Product> products = new ArrayList<>();
         for (Long id : ids) {
-            Product product = this.repository
-                    .findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+            Product product = this.findModelById(id);
             products.add(product);
         }
         return products;
+    }
+
+    private Product findModelById(Long id) {
+        return this.repository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
     }
 }
